@@ -19,6 +19,25 @@ def test_binary_and_investigation():
     assert investigation.status_code == 201
     assert investigation.json()["status"] == "created"
 
+def test_lists_records_and_strips_path_from_label():
+    binary = client.post("/api/v1/binaries", files={"file": ("../secret.elf", b"\x7fELFtest")})
+    assert binary.status_code == 201
+    body = binary.json()
+    assert body["label"] == "secret.elf"
+    assert "/" not in body["label"]
+    listed = client.get("/api/v1/binaries")
+    assert listed.status_code == 200
+    assert any(item["id"] == body["id"] for item in listed.json())
+    investigation = client.post(
+        "/api/v1/investigations",
+        json={"binary_id": body["id"], "objective": "Review input parsing"},
+    )
+    assert investigation.status_code == 201
+    investigations = client.get("/api/v1/investigations")
+    assert investigations.status_code == 200
+    assert any(item["id"] == investigation.json()["id"] for item in investigations.json())
+
+
 def test_execution_denied():
     result = client.post("/api/v1/investigations", json={"binary_id": "missing", "objective": "Review input parsing", "dynamic_execution": True})
     assert result.status_code in (403, 404)

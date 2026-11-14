@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "@sgerhart/ux-framework/styles.css";
+
+@theme {
+  --color-brand: #0f4c5c;
+}

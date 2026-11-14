@@ -1,22 +1,13 @@
-# Engineering work orders
+# Roadmap
 
-## WO-001 Persistent state
-PostgreSQL migrations for binary, investigation, task, evidence, finding, audit, approval. Replace in-memory dictionaries. Acceptance: restart retains investigations; migration tests pass.
+Product direction only. Accepted work and its status live in [`docs/status.md`](status.md) and [`docs/work_orders/`](work_orders/).
 
-## WO-002 Identity and policy
-OIDC authentication, RBAC, scoped investigation permissions, default-deny tool gateway. Acceptance: unauthorized requests denied; audit events emitted.
+## Phases
 
-## WO-003 Artifact storage
-Content-addressed immutable binaries in MinIO; size/type controls and retention. Acceptance: hash verification and safe retrieval; no execution.
+1. Persistent PostgreSQL investigation and evidence models, auth, policy gateway.
+2. Ghidra headless static analysis worker, immutable artifact store.
+3. LangGraph bounded orchestration and traceable findings.
+4. Hypervisor-isolated dynamic analysis with approvals.
+5. Additional capability packages and cross-domain correlation.
 
-## WO-004 Ghidra worker
-Isolated headless worker for ELF static analysis. Acceptance: function inventory and decompilation linked to binary SHA and tool version.
-
-## WO-005 Agent orchestration
-LangGraph supervisor, budgets, checkpointing, deterministic task queue, evidence citations. Acceptance: repeatable bounded investigation of sample binary.
-
-## WO-006 Findings and reporting
-Structured hypotheses, provenance, review states, Markdown/JSON report. Acceptance: every claim links to stored evidence.
-
-## WO-007 Dynamic sandbox (later)
-Hypervisor VM isolation, network denial, explicit approvals, resource limits, teardown. Acceptance: adversarial isolation tests pass.
+The local operator console is the experience surface for these phases. It is not itself a later phase.

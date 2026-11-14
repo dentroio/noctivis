@@ -15,6 +15,14 @@ INVESTIGATIONS: dict[str, Investigation] = {}
 BINARIES: dict[str, dict] = {}
 MAX_UPLOAD = 20 * 1024 * 1024
 
+
+def sample_label(filename: str | None) -> str:
+    """Operator-facing name. Display only; never used as a filesystem path."""
+    raw = (filename or "sample").replace("\\", "/")
+    base = raw.rsplit("/", 1)[-1]
+    cleaned = "".join(ch if ch.isprintable() and ch not in "/\\" else "_" for ch in base).strip(" .")
+    return (cleaned[:120] or "sample")
+
 @app.get("/health")
 def health():
     return {"status": "ok", "platform": "noctivis"}
@@ -40,10 +48,19 @@ async def upload_binary(file: UploadFile = File(...)):
                 out.write(chunk)
         metadata = classify(Path(name))
         binary_id = digest.hexdigest()
-        BINARIES[binary_id] = {"id": binary_id, "sha256": binary_id, **metadata}
+        BINARIES[binary_id] = {
+            "id": binary_id,
+            "sha256": binary_id,
+            "label": sample_label(file.filename),
+            **metadata,
+        }
         return BINARIES[binary_id]
     finally:
         Path(name).unlink(missing_ok=True)
+
+@app.get("/api/v1/binaries")
+def list_binaries():
+    return list(BINARIES.values())
 
 @app.post("/api/v1/investigations", response_model=Investigation, status_code=201)
 def create_investigation(payload: InvestigationCreate):
@@ -54,6 +71,10 @@ def create_investigation(payload: InvestigationCreate):
     investigation = Investigation(id=str(uuid4()), **payload.model_dump())
     INVESTIGATIONS[investigation.id] = investigation
     return investigation
+
+@app.get("/api/v1/investigations", response_model=list[Investigation])
+def list_investigations():
+    return list(INVESTIGATIONS.values())
 
 @app.get("/api/v1/investigations/{investigation_id}", response_model=Investigation)
 def get_investigation(investigation_id: str):

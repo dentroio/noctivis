@@ -12,10 +12,22 @@ NOCTIVIS is an early-stage, modular foundation for an agentic security intellige
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
-uvicorn main:app --app-dir apps/api --reload
+uvicorn main:app --app-dir apps/api --reload --host 127.0.0.1 --port 8000
 ```
 
 Open http://127.0.0.1:8000/docs for the interactive API.
+
+The operator console lives in `apps/web` and uses the local `@sgerhart/ux-framework` package. Until that package is published, its checkout must sit beside this repo at `github/sgerhart/ux-framework` (the `file:` dependency in `apps/web/package.json`).
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Open http://127.0.0.1:5173. The dev server proxies `/api` and `/health` to the API on 127.0.0.1:8000. Both bind to loopback. The console has no sign-in.
+
+Work is tracked with the [Work Order Protocol](https://github.com/dentroio/work-order-protocol). Read `AGENT_PROCESS.md`, then `docs/status.md`.
 
 ```bash
 pytest -q
@@ -26,7 +38,9 @@ pytest -q
 - `GET /health`
 - `GET /api/v1/capabilities`
 - `POST /api/v1/binaries` — bounded, non-executing format triage
+- `GET /api/v1/binaries`
 - `POST /api/v1/investigations` — creates a draft investigation
+- `GET /api/v1/investigations`
 - `GET /api/v1/investigations/{id}`
 
 ## Security caveats

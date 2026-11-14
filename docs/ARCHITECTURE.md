@@ -19,4 +19,4 @@ Upload a sample ELF -> classify and hash -> persist artifact -> enqueue Ghidra w
 
 ## Not yet implemented
 
-Authentication, persistence, worker queues, Ghidra, LangGraph, MCP, dynamic analysis, and UI. The API scaffold only demonstrates endpoint and model contracts.
+Authentication, persistence, worker queues, Ghidra, LangGraph, MCP, and dynamic analysis. A local operator console shells the in-memory API and does not add access control. The API scaffold demonstrates endpoint and model contracts.
