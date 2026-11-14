@@ -11,7 +11,7 @@ import {
   queryKeys,
   type Investigation,
 } from '../api'
-import { inputClass, primaryButtonClass, statusLabel, statusTone } from '../ui'
+import { inputClass, panelClass, primaryButtonClass, statusLabel, statusTone } from '../ui'
 
 const PURPOSE = 'Questions you have asked about a classified sample. The sample itself is not executed.'
 
@@ -107,7 +107,7 @@ export function Investigations() {
         />
       )}
       {binaries.isSuccess && investigations.isSuccess && binaries.data.length > 0 && (
-        <form onSubmit={submit} className="space-y-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <form onSubmit={submit} className={`space-y-3 p-4 ${panelClass}`}>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
             Sample
             <select className={`${inputClass} mt-1`} value={selectedId} onChange={(event) => setBinaryId(event.target.value)}>

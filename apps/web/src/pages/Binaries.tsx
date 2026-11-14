@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Binary } from 'lucide-react'
 import { DataTable, EmptyState, ErrorState, LoadingState, PageHeader, StatusBadge, useToast, type Column } from '@sgerhart/ux-framework'
 import { errorDetail, listBinaries, MAX_UPLOAD_BYTES, queryKeys, uploadBinary, type BinaryRecord } from '../api'
-import { formatBytes, inputClass, primaryButtonClass } from '../ui'
+import { formatBytes, inputClass, panelClass, primaryButtonClass } from '../ui'
 
 const PURPOSE = 'Samples classified on this workstation. The file is hashed and then deleted. Nothing is executed.'
 
@@ -54,7 +54,7 @@ export function Binaries() {
   return (
     <div className="space-y-6">
       <PageHeader title="Binaries" purpose={PURPOSE} />
-      <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-end dark:border-gray-700 dark:bg-gray-800">
+      <form onSubmit={submit} className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-end ${panelClass}`}>
         <label className="block flex-1 text-sm font-medium text-gray-700 dark:text-gray-200">
           Sample file
           <input

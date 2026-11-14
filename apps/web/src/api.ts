@@ -52,10 +52,24 @@ export class ApiError extends Error {
   }
 }
 
+import { tokens } from './auth'
+
 export function errorDetail(error: unknown): string {
   if (error instanceof ApiError) return `${error.status} ${error.detail}`
   if (error instanceof Error) return error.message
   return 'Unknown error'
+}
+
+async function send(path: string, init?: RequestInit): Promise<Response> {
+  const headers = new Headers(init?.headers)
+  const token = tokens.getAccess()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  const response = await fetch(path, { ...init, headers })
+  if (response.status === 401 && window.location.pathname !== '/login') {
+    tokens.clear()
+    window.location.assign('/login')
+  }
+  return response
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -78,30 +92,30 @@ export async function getHealth(): Promise<Health> {
 }
 
 export async function listCapabilities(): Promise<Capability[]> {
-  return parse<Capability[]>(await fetch('/api/v1/capabilities'))
+  return parse<Capability[]>(await send('/api/v1/capabilities'))
 }
 
 export async function listBinaries(): Promise<BinaryRecord[]> {
-  return parse<BinaryRecord[]>(await fetch('/api/v1/binaries'))
+  return parse<BinaryRecord[]>(await send('/api/v1/binaries'))
 }
 
 export async function uploadBinary(file: File): Promise<BinaryRecord> {
   const body = new FormData()
   body.append('file', file)
-  return parse<BinaryRecord>(await fetch('/api/v1/binaries', { method: 'POST', body }))
+  return parse<BinaryRecord>(await send('/api/v1/binaries', { method: 'POST', body }))
 }
 
 export async function listInvestigations(): Promise<Investigation[]> {
-  return parse<Investigation[]>(await fetch('/api/v1/investigations'))
+  return parse<Investigation[]>(await send('/api/v1/investigations'))
 }
 
 export async function getInvestigation(id: string): Promise<Investigation> {
-  return parse<Investigation>(await fetch(`/api/v1/investigations/${encodeURIComponent(id)}`))
+  return parse<Investigation>(await send(`/api/v1/investigations/${encodeURIComponent(id)}`))
 }
 
 export async function createInvestigation(binaryId: string, objective: string): Promise<Investigation> {
   return parse<Investigation>(
-    await fetch('/api/v1/investigations', {
+    await send('/api/v1/investigations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ binary_id: binaryId, objective, dynamic_execution: false }),

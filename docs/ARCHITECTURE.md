@@ -19,4 +19,4 @@ Upload a sample ELF -> classify and hash -> persist artifact -> enqueue Ghidra w
 
 ## Not yet implemented
 
-Authentication, persistence, worker queues, Ghidra, LangGraph, MCP, and dynamic analysis. A local operator console shells the in-memory API and does not add access control. The API scaffold demonstrates endpoint and model contracts.
+Authentication beyond a single local operator, persistence, worker queues, Ghidra, LangGraph, MCP, and dynamic analysis. The operator console signs in against that local password and does not assign roles or a policy gateway.

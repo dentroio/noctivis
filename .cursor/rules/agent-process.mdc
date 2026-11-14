@@ -12,4 +12,4 @@ Read `AGENT_PROCESS.md` before implementing a Work Order.
 - Run the Work Order validation plan and project quality gate.
 - Ask for human verification when required.
 - File follow-ons for adjacent work instead of expanding the current change.
-- Do not execute uploaded samples, and do not pretend a demo login is authentication.
+- Do not execute uploaded samples, and do not replace the operator password check with a login that accepts any password.

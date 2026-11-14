@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ErrorState, LoadingState, PageHeader } from '@sgerhart/ux-framework'
 import { errorDetail, getHealth, listBinaries, listCapabilities, listInvestigations, queryKeys } from '../api'
+import { panelClass } from '../ui'
 
 const PURPOSE = 'What is on this workstation, and whether the local API is responding.'
 
@@ -64,7 +65,7 @@ export function Overview() {
           <Link
             key={href}
             to={href}
-            className="rounded-lg border border-gray-200 bg-white p-4 hover:border-brand dark:border-gray-700 dark:bg-gray-800"
+            className={`${panelClass} p-4 hover:border-brand`}
           >
             <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300">{label}</div>
             <div className="mt-1 text-3xl font-bold tabular-nums text-gray-900 dark:text-gray-100">{value}</div>

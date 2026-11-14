@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ScanSearch } from 'lucide-react'
 import { EmptyState, ErrorState, LoadingState, PageHeader, StatusBadge } from '@sgerhart/ux-framework'
 import { errorDetail, getInvestigation, listBinaries, queryKeys } from '../api'
-import { statusLabel, statusTone } from '../ui'
+import { panelClass, statusLabel, statusTone } from '../ui'
 
 const PURPOSE = 'The question this investigation is asking, and any findings recorded so far.'
 
@@ -49,7 +49,7 @@ export function InvestigationDetail() {
         purpose={PURPOSE}
         stateChip={{ label: statusLabel(record.status), variant: record.status === 'failed' ? 'error' : 'info' }}
       />
-      <dl className="grid gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2 dark:border-gray-700 dark:bg-gray-800">
+      <dl className={`grid gap-4 p-4 sm:grid-cols-2 ${panelClass}`}>
         <div>
           <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300">Status</dt>
           <dd className="mt-1">
@@ -94,7 +94,7 @@ export function InvestigationDetail() {
       ) : (
         <ul className="space-y-2">
           {record.findings.map((finding, index) => (
-            <li key={index} className="rounded-lg border border-gray-200 bg-white p-4 text-sm dark:border-gray-700 dark:bg-gray-800">
+            <li key={index} className={`p-4 text-sm ${panelClass}`}>
               {JSON.stringify(finding)}
             </li>
           ))}

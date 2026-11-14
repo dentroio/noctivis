@@ -25,7 +25,9 @@ npm install
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. The dev server proxies `/api` and `/health` to the API on 127.0.0.1:8000. Both bind to loopback. The console has no sign-in.
+Open http://127.0.0.1:5173 and sign in. The dev server proxies `/api` and `/health` to the API on 127.0.0.1:8000. Both bind to loopback.
+
+The API expects one local operator. Set `NOCTIVIS_OPERATOR_NAME` and `NOCTIVIS_OPERATOR_PASSWORD` before starting it. When the password is unset, the process prints a password once at startup. Sessions live in memory and end when the API stops.
 
 Work is tracked with the [Work Order Protocol](https://github.com/dentroio/work-order-protocol). Read `AGENT_PROCESS.md`, then `docs/status.md`.
 
@@ -35,6 +37,9 @@ pytest -q
 
 ## Current endpoints
 
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/auth/logout`
 - `GET /health`
 - `GET /api/v1/capabilities`
 - `POST /api/v1/binaries` — bounded, non-executing format triage
@@ -45,7 +50,7 @@ pytest -q
 
 ## Security caveats
 
-The MVP uses in-memory state and has no authentication. Run only on loopback for development. Do not expose to a network or upload sensitive/untrusted artifacts until authentication, persistence, isolation, and malware-safe storage have been implemented. Uploads are deleted after metadata extraction. No binary execution occurs.
+The MVP keeps investigations in memory. One local operator password gates the console and the API. Run only on loopback for development. Do not expose it to a network or upload sensitive or untrusted artifacts until persistent identity, isolation, and malware-safe storage exist. Uploads are deleted after metadata extraction. No binary execution occurs.
 
 ## Planned phases
 

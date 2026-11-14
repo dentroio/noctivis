@@ -10,7 +10,10 @@ import {
   type NavSection,
   type SearchProvider,
 } from '@sgerhart/ux-framework'
+import { PrivateRoute, useAuth } from '@sgerhart/ux-framework/platform'
+import headerMark from '../../../left_header_pic.png'
 import { listBinaries, listInvestigations, queryKeys } from './api'
+import { Login } from './Login'
 import { Binaries } from './pages/Binaries'
 import { Capabilities } from './pages/Capabilities'
 import { InvestigationDetail } from './pages/InvestigationDetail'
@@ -43,8 +46,9 @@ function NotFound() {
   )
 }
 
-export function App() {
+export function Console() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const healthTone = useQuery({
     queryKey: queryKeys.health,
     queryFn: async () => {
@@ -98,11 +102,12 @@ export function App() {
     <AppShell
       nav={NAV}
       brand={
-        <button type="button" onClick={() => navigate('/')} className="flex items-center gap-2 text-lg font-bold tracking-wide text-brand dark:text-gray-100">
-          <Moon className="h-5 w-5" />
-          NOCTIVIS
+        <button type="button" onClick={() => navigate('/')} className="flex items-center">
+          <img src={headerMark} alt="Noctivis" className="h-14 w-auto" />
         </button>
       }
+      user={user ? { name: user.name, role: 'Operator' } : null}
+      onLogout={() => void logout()}
       status={status}
       storageKey="noctivis"
       breadcrumb={{
@@ -116,7 +121,7 @@ export function App() {
       headerActions={<CommandPalette providers={providers} placeholder="Search investigations and samples…" />}
       banners={
         <Banner tone="warning">
-          This console has no sign-in. It talks only to the API on this machine. Samples are classified and deleted, never executed.
+          This session is one local operator. Samples are classified and deleted, never executed.
         </Banner>
       }
     >
@@ -129,5 +134,21 @@ export function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>
+  )
+}
+
+export function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/*"
+        element={
+          <PrivateRoute>
+            <Console />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
   )
 }
