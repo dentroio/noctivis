@@ -54,7 +54,7 @@ A bounded orchestration run for one sample: the supervisor may request a tool, t
 - **Branch:** `wo/005-agent-orchestration`
 - **Risk tier:** P1
 - **Pre-PR / pre-merge gate:** `pytest -q`
-- **Depends on:** WO-002, WO-004
+- **Depends on:** WO-002, WO-004, WO-009. The run uses the default model connector. It does not choose a vendor on its own.
 - **Human verification required:** Yes
 - **Reviewer / approver:** repository owner
 - **Project status record:** `docs/status.md`

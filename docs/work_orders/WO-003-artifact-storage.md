@@ -1,6 +1,6 @@
 # WO-003 — Immutable artifact storage
 
-**Status:** Draft
+**Status:** Review
 **Priority:** P1
 **Effort:** L
 **Owner:** unassigned
@@ -12,10 +12,10 @@
 
 ## Decision Context
 
-- Chosen approach: not chosen.
-- Alternatives rejected: none yet.
-- Assumptions: the API host still does not execute samples. The store holds bytes for a worker to read.
-- Open decisions: MinIO versus another object store, size and type limits beyond the current 20 MiB cap, retention, and how a caller retrieves bytes without the API executing them.
+- Chosen approach: content-addressed files under `NOCTIVIS_ARTIFACT_DIR`. `GET /api/v1/binaries/{id}/content` returns the bytes after the existing local operator check and verifies the SHA-256. The route does not execute the file.
+- Alternatives rejected: MinIO in this slice. It would be another service and another port. The 20 MiB cap stays.
+- Assumptions: the API host still does not execute samples. Bytes are kept until a later work order defines retention. The listener stays on loopback.
+- Open decisions: none.
 
 ## What To Build / Fix
 
@@ -62,10 +62,10 @@ Store sample bytes by SHA-256 after classification. Retrieval returns the bytes 
 
 ## Closeout
 
-- Verification evidence:
-- Follow-ons filed:
-- Residual risks:
-- Docs/status updated:
-- Status surfaces reconciled:
-- Summary metadata reviewed:
+- Verification evidence: `pytest -q` — 10 passed, including `test_stored_sample_round_trips_and_matches_its_hash`, `test_oversized_upload_is_not_stored`, and `test_upload_does_not_spawn_a_process`. The round trip returned the uploaded bytes and the SHA-256 matched. An unauthenticated content request returned 401. `npm run typecheck` in `apps/web` passed. The console reload is still for the owner.
+- Follow-ons filed: Ghidra reads these bytes in WO-004. Retention policy is not defined.
+- Residual risks: the artifact directory is local disk, not an object service. Re-uploading the same bytes still replaces the display label. The content route is available to the local operator on loopback.
+- Docs/status updated: README, `docs/ARCHITECTURE.md`, `docs/status.md`, `AGENT_PROCESS.md`, this Work Order.
+- Status surfaces reconciled: `docs/status.md` lists WO-003 under Review.
+- Summary metadata reviewed: focus and phase in `docs/status.md`.
 - Planning-only change? No

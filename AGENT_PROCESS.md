@@ -42,7 +42,7 @@ If one change spans two tiers, split it.
 ## Project Invariants
 
 - The console signs in as one local operator whose password comes from the environment. Do not accept an empty or universal password.
-- Uploaded samples are classified and then deleted. Do not execute them on the API host.
+- Uploaded samples are stored by hash. Do not execute them on the API host. Remove the temporary upload file after the bytes are in the artifact store.
 - `dynamic_execution` stays denied until a later Work Order defines an isolated sandbox.
 - Development servers bind to loopback. Do not expose the API or console on a network interface.
 - Do not store production credentials in source or fixtures.

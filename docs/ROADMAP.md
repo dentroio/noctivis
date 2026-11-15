@@ -6,7 +6,7 @@ Product direction only. Accepted work and its status live in [`docs/status.md`](
 
 1. Persistent PostgreSQL investigation and evidence models, auth, policy gateway.
 2. Ghidra headless static analysis worker, immutable artifact store.
-3. LangGraph bounded orchestration and traceable findings.
+3. LangGraph bounded orchestration and traceable findings. The operator selects the model, and later external lookups, through the connector framework.
 4. Hypervisor-isolated dynamic analysis with approvals.
 5. Additional capability packages and cross-domain correlation.
 

@@ -5,7 +5,7 @@ import { DataTable, EmptyState, ErrorState, LoadingState, PageHeader, StatusBadg
 import { errorDetail, listBinaries, MAX_UPLOAD_BYTES, queryKeys, uploadBinary, type BinaryRecord } from '../api'
 import { formatBytes, inputClass, panelClass, primaryButtonClass } from '../ui'
 
-const PURPOSE = 'Samples classified on this workstation. The file is hashed and then deleted. Nothing is executed.'
+const PURPOSE = 'Samples classified on this workstation. The bytes are stored by hash. Nothing is executed.'
 
 export function Binaries() {
   const queryClient = useQueryClient()
@@ -89,7 +89,7 @@ export function Binaries() {
         <EmptyState
           icon={Binary}
           title="No samples yet"
-          description="Choose a file above. It is classified from its header, then deleted. Nothing is executed."
+          description="Choose a file above. It is classified from its header and stored by hash. Nothing is executed."
         />
       )}
       {binaries.isSuccess && binaries.data.length > 0 && (
