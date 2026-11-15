@@ -17,6 +17,10 @@ No model output or binary-embedded string can authorize a tool call. The gateway
 
 Upload a sample ELF -> classify and hash -> persist artifact -> enqueue Ghidra worker -> collect function inventory -> supervisor selects function -> decompile -> store evidence -> generate bounded findings report.
 
+## Where analysis runs
+
+The operator console and the API stay on the ARM Mac, bound to loopback. PostgreSQL and the artifact store stay there too. Static analysis runs on a Proxmox backend: a Linux guest for ELF, and a Windows guest for PE when that order is accepted. The Mac queues the job. The guest claims it, runs headless Ghidra, and writes evidence. The sample is not executed. Dynamic execution remains a separate, network-denied VM with an approval, and it is not these two guests.
+
 ## Not yet implemented
 
-Authentication beyond a single local operator, persistence, worker queues, Ghidra, LangGraph, MCP, and dynamic analysis. The operator console signs in against that local password and does not assign roles or a policy gateway.
+Authentication beyond a single local operator, LangGraph, MCP, and dynamic analysis. The Ghidra worker is queued from the API and runs outside that process. Binary metadata and investigations are stored in PostgreSQL. Sample bytes are stored by SHA-256 and are not executed on the API host. The operator console signs in against that local password and does not assign roles or a policy gateway.

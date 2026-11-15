@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Binary, Files, Gauge, Moon, ScanSearch } from 'lucide-react'
+import { Binary, Cpu, Files, Gauge, Moon, ScanSearch } from 'lucide-react'
 import {
   AppShell,
   Banner,
@@ -18,6 +18,7 @@ import { Binaries } from './pages/Binaries'
 import { Capabilities } from './pages/Capabilities'
 import { InvestigationDetail } from './pages/InvestigationDetail'
 import { Investigations } from './pages/Investigations'
+import { Models } from './pages/Models'
 import { Overview } from './pages/Overview'
 
 const NAV: NavSection[] = [
@@ -32,6 +33,10 @@ const NAV: NavSection[] = [
   {
     label: 'Understand',
     items: [{ name: 'Capabilities', href: '/capabilities', icon: Files }],
+  },
+  {
+    label: 'Connect',
+    items: [{ name: 'Models', href: '/models', icon: Cpu }],
   },
 ]
 
@@ -116,12 +121,13 @@ export function Console() {
           investigations: 'Investigations',
           binaries: 'Binaries',
           capabilities: 'Capabilities',
+          models: 'Models',
         },
       }}
       headerActions={<CommandPalette providers={providers} placeholder="Search investigations and samples…" />}
       banners={
         <Banner tone="warning">
-          This session is one local operator. Samples are classified and deleted, never executed.
+          This session is one local operator. Samples are stored by hash and never executed.
         </Banner>
       }
     >
@@ -131,6 +137,7 @@ export function Console() {
         <Route path="/investigations/:investigationId" element={<InvestigationDetail />} />
         <Route path="/binaries" element={<Binaries />} />
         <Route path="/capabilities" element={<Capabilities />} />
+        <Route path="/models" element={<Models />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>

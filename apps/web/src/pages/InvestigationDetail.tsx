@@ -1,18 +1,53 @@
 import { Link, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ScanSearch } from 'lucide-react'
 import { EmptyState, ErrorState, LoadingState, PageHeader, StatusBadge } from '@sgerhart/ux-framework'
-import { errorDetail, getInvestigation, listBinaries, queryKeys } from '../api'
-import { panelClass, statusLabel, statusTone } from '../ui'
+import {
+  enqueueAnalysis,
+  errorDetail,
+  getAnalysis,
+  getInvestigation,
+  listBinaries,
+  listEvidence,
+  queryKeys,
+  type EvidenceRecord,
+} from '../api'
+import { panelClass, primaryButtonClass, statusLabel, statusTone } from '../ui'
 
 const PURPOSE = 'The question this investigation is asking, and any findings recorded so far.'
 
+function pendingStatus(status: string | undefined): number | false {
+  return status === 'queued' || status === 'running' ? 2000 : false
+}
+
 export function InvestigationDetail() {
   const { investigationId = '' } = useParams()
+  const queryClient = useQueryClient()
   const investigation = useQuery({
     queryKey: queryKeys.investigation(investigationId),
     queryFn: () => getInvestigation(investigationId),
     enabled: investigationId.length > 0,
+    refetchInterval: (query) => pendingStatus(query.state.data?.status),
+  })
+  const analysis = useQuery({
+    queryKey: queryKeys.analysis(investigationId),
+    queryFn: () => getAnalysis(investigationId),
+    enabled: investigationId.length > 0,
+    refetchInterval: () => pendingStatus(investigation.data?.status),
+  })
+  const evidence = useQuery({
+    queryKey: queryKeys.evidence(investigationId),
+    queryFn: () => listEvidence(investigationId),
+    enabled: investigationId.length > 0,
+    refetchInterval: () => pendingStatus(investigation.data?.status),
+  })
+  const analyze = useMutation({
+    mutationFn: () => enqueueAnalysis(investigationId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.investigation(investigationId) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.analysis(investigationId) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.investigations })
+    },
   })
   const binaries = useQuery({ queryKey: queryKeys.binaries, queryFn: listBinaries })
   const sample = binaries.data?.find((item) => item.id === investigation.data?.binary_id)
@@ -85,11 +120,20 @@ export function InvestigationDetail() {
           <dd className="mt-1 font-mono text-xs break-all text-gray-900 dark:text-gray-100">{record.binary_id}</dd>
         </div>
       </dl>
+      <StaticAnalysis
+        format={sample?.format}
+        jobStatus={analysis.data?.status}
+        jobError={analysis.data?.error}
+        evidence={evidence.data ?? []}
+        busy={analyze.isPending || record.status === 'queued' || record.status === 'running'}
+        actionError={analyze.isError ? errorDetail(analyze.error) : null}
+        onAnalyze={() => analyze.mutate()}
+      />
       {record.findings.length === 0 ? (
         <EmptyState
           icon={ScanSearch}
           title="No findings yet"
-          description="This workstation only classifies the sample and records the question you asked."
+          description="A later review step writes findings. Static analysis evidence is listed above when a Ghidra job finishes."
         />
       ) : (
         <ul className="space-y-2">
@@ -101,5 +145,81 @@ export function InvestigationDetail() {
         </ul>
       )}
     </div>
+  )
+}
+
+function StaticAnalysis({
+  format,
+  jobStatus,
+  jobError,
+  evidence,
+  busy,
+  actionError,
+  onAnalyze,
+}: {
+  format: string | undefined
+  jobStatus: string | undefined
+  jobError: string | undefined
+  evidence: EvidenceRecord[]
+  busy: boolean
+  actionError: string | null
+  onAnalyze: () => void
+}) {
+  const inventory = evidence.find((item) => item.kind === 'function_inventory')
+  const decompilation = evidence.find((item) => item.kind === 'decompilation')
+  const functions = inventory?.body.functions ?? []
+  const canQueue = format === 'ELF' && !busy && jobStatus !== 'completed'
+
+  return (
+    <section className={`space-y-4 p-4 ${panelClass}`}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Static analysis</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+            {inventory
+              ? `Ghidra ${inventory.tool_version} read this sample and did not execute it.`
+              : 'Queue a separate Ghidra process. The sample stays stored by hash and is not executed.'}
+          </p>
+        </div>
+        {canQueue ? (
+          <button type="button" className={primaryButtonClass} onClick={onAnalyze} disabled={busy}>
+            Run static analysis
+          </button>
+        ) : null}
+      </div>
+      {format && format !== 'ELF' ? (
+        <p className="text-sm text-gray-500 dark:text-gray-300">Static analysis currently accepts ELF samples.</p>
+      ) : null}
+      {busy ? <p className="text-sm text-gray-500 dark:text-gray-300">Ghidra is analyzing this sample.</p> : null}
+      {jobStatus === 'failed' && jobError ? (
+        <p className="text-sm text-red-700 dark:text-red-300">{jobError}</p>
+      ) : null}
+      {actionError ? <p className="text-sm text-red-700 dark:text-red-300">{actionError}</p> : null}
+      {functions.length > 0 ? (
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300">
+            Functions ({functions.length})
+          </h3>
+          <ul className="mt-2 divide-y divide-gray-200 dark:divide-[#163044]">
+            {functions.map((item) => (
+              <li key={`${item.name}-${item.entry}`} className="flex items-baseline justify-between gap-4 py-2 text-sm">
+                <span className="font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                <span className="font-mono text-xs text-gray-500 dark:text-gray-300">{item.entry}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {decompilation?.body.text ? (
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300">
+            Decompilation · {decompilation.body.name}
+          </h3>
+          <pre className="mt-2 max-h-80 overflow-auto rounded-md border border-gray-200 bg-[#030910] p-3 font-mono text-xs text-gray-100 dark:border-[#163044]">
+            {decompilation.body.text}
+          </pre>
+        </div>
+      ) : null}
+    </section>
   )
 }

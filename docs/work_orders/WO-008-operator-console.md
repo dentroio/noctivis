@@ -1,6 +1,6 @@
 # WO-008 — Operator console
 
-**Status:** Review
+**Status:** Complete
 **Priority:** P1
 **Effort:** M
 **Owner:** repository owner

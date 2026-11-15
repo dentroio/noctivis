@@ -6,6 +6,8 @@ export const queryKeys = {
   binaries: ['binaries'] as const,
   investigations: ['investigations'] as const,
   investigation: (id: string) => ['investigation', id] as const,
+  analysis: (id: string) => ['analysis', id] as const,
+  evidence: (id: string) => ['evidence', id] as const,
 }
 
 export type InvestigationStatus = 'created' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
@@ -111,6 +113,120 @@ export async function listInvestigations(): Promise<Investigation[]> {
 
 export async function getInvestigation(id: string): Promise<Investigation> {
   return parse<Investigation>(await send(`/api/v1/investigations/${encodeURIComponent(id)}`))
+}
+
+export interface AnalysisJob {
+  id: string
+  investigation_id: string
+  binary_id: string
+  sha256: string
+  status: 'queued' | 'running' | 'completed' | 'failed'
+  error: string
+}
+
+export interface AnalysisFunction {
+  name: string
+  entry: string
+}
+
+export interface EvidenceRecord {
+  id: string
+  investigation_id: string
+  binary_id: string
+  job_id: string
+  sha256: string
+  tool: string
+  tool_version: string
+  kind: 'function_inventory' | 'decompilation'
+  body: {
+    functions?: AnalysisFunction[]
+    name?: string
+    entry?: string
+    text?: string
+  }
+}
+
+export async function getAnalysis(id: string): Promise<AnalysisJob | null> {
+  try {
+    return await parse<AnalysisJob>(await send(`/api/v1/investigations/${encodeURIComponent(id)}/analysis`))
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
+  }
+}
+
+export async function enqueueAnalysis(id: string): Promise<AnalysisJob> {
+  return parse<AnalysisJob>(
+    await send(`/api/v1/investigations/${encodeURIComponent(id)}/analysis`, { method: 'POST' }),
+  )
+}
+
+export async function listEvidence(id: string): Promise<EvidenceRecord[]> {
+  return parse<EvidenceRecord[]>(await send(`/api/v1/investigations/${encodeURIComponent(id)}/evidence`))
+}
+
+export interface LlmConfig {
+  provider: 'local' | 'hosted'
+  model: string
+  base_url: string
+  api_key_env?: string
+}
+
+export interface ConnectorRecord {
+  id: string
+  kind: string
+  name: string
+  description: string
+  enabled: boolean
+  is_default: boolean
+  config: LlmConfig
+  last_checked_at: string | null
+  last_status: string
+}
+
+export async function listConnectors(): Promise<ConnectorRecord[]> {
+  return parse<ConnectorRecord[]>(await send('/api/v1/connectors?kind=llm'))
+}
+
+export async function createConnector(body: {
+  name: string
+  description: string
+  enabled: boolean
+  is_default: boolean
+  config: LlmConfig
+}): Promise<ConnectorRecord> {
+  return parse<ConnectorRecord>(
+    await send('/api/v1/connectors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function updateConnector(
+  id: string,
+  body: Partial<{ name: string; description: string; enabled: boolean; is_default: boolean; config: LlmConfig }>,
+): Promise<ConnectorRecord> {
+  return parse<ConnectorRecord>(
+    await send(`/api/v1/connectors/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function deleteConnector(id: string): Promise<void> {
+  await parse(await send(`/api/v1/connectors/${encodeURIComponent(id)}`, { method: 'DELETE' }))
+}
+
+export async function testConnector(id: string, prompt: string): Promise<{ reply: string; connector: ConnectorRecord }> {
+  return parse(await send(`/api/v1/connectors/${encodeURIComponent(id)}/test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  }))
 }
 
 export async function createInvestigation(binaryId: string, objective: string): Promise<Investigation> {

@@ -1,6 +1,6 @@
 # WO-001 — Persistent investigation state
 
-**Status:** Draft
+**Status:** Review
 **Priority:** P1
 **Effort:** L
 **Owner:** unassigned
@@ -12,10 +12,10 @@ Investigations and classified samples disappear when the API process restarts. `
 
 ## Decision Context
 
-- Chosen approach: not chosen. This Work Order is not ready to implement.
-- Alternatives rejected: none yet.
-- Assumptions: metadata is persisted before sample bytes. Bytes stay deleted after classification until WO-003.
-- Open decisions: migration tool, local PostgreSQL setup, which of task, evidence, finding, audit, and approval tables land in this Work Order versus later ones.
+- Chosen approach: PostgreSQL via `NOCTIVIS_DATABASE_URL`, with versioned SQL files in `packages/noctivis/migrations` applied on connection. Only the records the API already stores are tables: binary metadata and investigations. `findings` stays a JSON field on the investigation row. Sessions stay in memory.
+- Alternatives rejected: an ORM and a findings, task, evidence, audit, or approval table in this Work Order. SQLite as a stand-in for PostgreSQL.
+- Assumptions: metadata is persisted before sample bytes. Bytes stay deleted after classification until WO-003. The loopback database password in `docker-compose.yml` is a local placeholder.
+- Open decisions: none.
 
 ## What To Build / Fix
 
@@ -66,10 +66,10 @@ Do not design the full future schema in code until the open decisions above are 
 
 ## Closeout
 
-- Verification evidence:
-- Follow-ons filed:
-- Residual risks:
-- Docs/status updated:
-- Status surfaces reconciled:
-- Summary metadata reviewed:
+- Verification evidence: `pytest -q` — 7 passed, including `test_investigation_survives_a_new_database_connection`. A second API process, given the same `NOCTIVIS_DATABASE_URL`, reloaded the investigation created by the first process (`objective` and `binary_id` matched). On 2026-11-14 the running API on 127.0.0.1:8000 stored investigation `57149b27-99b1-4df5-8d3a-7f071b5a4a45` (“Confirm this investigation survives an API restart”) against `restart-check.elf`, was restarted, and returned that same record. The console reload is still for the owner.
+- Follow-ons filed: sample bytes remain WO-003. Findings as their own records remain WO-006. Sessions and policy remain WO-002.
+- Residual risks: re-uploading the same bytes still replaces the display label. Sessions still end when the API process stops. The development database password is a local placeholder in `docker-compose.yml`.
+- Docs/status updated: README storage steps, `docs/ARCHITECTURE.md`, `docs/status.md`, this Work Order.
+- Status surfaces reconciled: `docs/status.md` lists WO-001 under Review.
+- Summary metadata reviewed: focus and phase in `docs/status.md`.
 - Planning-only change? No

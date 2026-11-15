@@ -47,7 +47,7 @@ export function Overview() {
   }
 
   const cards = [
-    ['Samples', String(binaries.data?.length ?? 0), 'Classified and then deleted', '/binaries'],
+    ['Samples', String(binaries.data?.length ?? 0), 'Stored by hash, never executed', '/binaries'],
     ['Investigations', String(investigations.data?.length ?? 0), 'Questions recorded against a sample', '/investigations'],
     ['Capabilities', String(capabilities.data?.length ?? 0), 'Analysis this workstation can run', '/capabilities'],
   ]

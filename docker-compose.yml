@@ -1,0 +1,15 @@
+# Loopback development database. The password is a local placeholder, not a production credential.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: noctivis
+      POSTGRES_PASSWORD: "test database password"
+      POSTGRES_DB: noctivis
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U noctivis -d noctivis"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
